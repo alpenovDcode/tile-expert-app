@@ -42,6 +42,10 @@ WORKDIR /var/www/html
 # Копируем файлы composer для кэширования зависимостей
 COPY composer.json composer.lock ./
 
+# Устанавливаем переменные окружения
+ENV APP_ENV=prod
+ENV APP_SECRET=your_app_secret_here_change_this
+
 # Устанавливаем зависимости PHP
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-progress --prefer-dist
 
