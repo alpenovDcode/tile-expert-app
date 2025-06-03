@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tile-expert-web
+    ports:
+      - "8080:80"
+    volumes:
+      # Монтируем директорию для обработанных изображений
+      - ./public/processed-images:/var/www/html/public/processed-images
+      # Монтируем логи для отладки
+      - ./var/log:/var/www/html/var/log
+    environment:
+      - APP_ENV=prod
+      - APP_DEBUG=0
+    restart: unless-stopped
+
+volumes:
+  processed_images:
+    driver: local 

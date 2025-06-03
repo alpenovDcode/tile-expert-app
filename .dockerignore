@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+README.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+var/log/*
+
+# Cache
+var/cache/*
+.phpunit.result.cache
+
+# Dependencies (будут установлены в контейнере)
+/vendor/
+
+# Временные файлы
+*.tmp
+*.temp
+
+# Docker файлы
+docker-compose.yml
+docker-compose.override.yml
+Dockerfile*
+
+# Тестовые файлы
+tests/
+phpunit.xml
+
+# Processed images - сохраняем только .gitkeep
+public/processed-images/*
+!public/processed-images/.gitkeep
+
+# Environment files
+.env.local
+.env.local.php
+.env.*.local 

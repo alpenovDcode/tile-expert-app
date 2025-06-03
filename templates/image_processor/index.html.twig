@@ -1,0 +1,171 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Обработчик изображений - Загрузка с веб-страниц{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="main-container">
+                <h1 class="text-center mb-4">
+                    <i class="fas fa-images text-primary"></i>
+                    Обработчик изображений
+                </h1>
+                <p class="text-center text-muted mb-4">
+                    Загружайте изображения с веб-страниц, обрабатывайте их и добавляйте текст
+                </p>
+
+                <!-- Форма для загрузки изображений -->
+                <form id="image-form" class="mb-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="url" class="form-label">
+                                <i class="fas fa-link"></i> URL веб-страницы
+                            </label>
+                            <input type="url" class="form-control" id="url" name="url" 
+                                   placeholder="https://example.com" required>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label for="min_width" class="form-label">
+                                <i class="fas fa-arrows-alt-h"></i> Мин. ширина (px)
+                            </label>
+                            <input type="number" class="form-control" id="min_width" name="min_width" 
+                                   value="300" min="1" max="2000" required>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label for="min_height" class="form-label">
+                                <i class="fas fa-arrows-alt-v"></i> Мин. высота (px)
+                            </label>
+                            <input type="number" class="form-control" id="min_height" name="min_height" 
+                                   value="300" min="1" max="2000" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-8">
+                            <label for="overlay_text" class="form-label">
+                                <i class="fas fa-font"></i> Текст для наложения
+                            </label>
+                            <input type="text" class="form-control" id="overlay_text" name="overlay_text" 
+                                   placeholder="Введите текст для наложения на изображения">
+                        </div>
+                        
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-download"></i>
+                                <span class="btn-text">Загрузить изображения</span>
+                                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Область для сообщений -->
+                <div id="messages"></div>
+
+                <!-- Заголовок для результатов -->
+                <div id="results-header" class="{% if processed_images is empty %}d-none{% endif %}">
+                    <hr class="my-4">
+                    <h3 class="text-center">
+                        <i class="fas fa-images"></i>
+                        Обработанные изображения
+                    </h3>
+                </div>
+
+                <!-- Сетка изображений -->
+                <div id="images-grid" class="image-grid">
+                    {% for image in processed_images %}
+                        <div class="image-card">
+                            <img src="{{ image.path }}" alt="Обработанное изображение" loading="lazy">
+                            <div class="text-center mt-2">
+                                <small class="text-muted">{{ image.created_at }}</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('image-form');
+    const messagesDiv = document.getElementById('messages');
+    const imagesGrid = document.getElementById('images-grid');
+    const resultsHeader = document.getElementById('results-header');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const btnText = submitBtn.querySelector('.btn-text');
+    const spinner = submitBtn.querySelector('.spinner-border');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        submitBtn.disabled = true;
+        btnText.textContent = 'Обрабатываем...';
+        spinner.classList.remove('d-none');
+        
+        messagesDiv.innerHTML = '';
+        
+        const formData = new FormData(form);
+        
+        fetch('/process-images', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                messagesDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        ${data.message}
+                    </div>
+                `;
+                
+                if (data.images && data.images.length > 0) {
+                    resultsHeader.classList.remove('d-none');
+                    
+                    data.images.forEach(image => {
+                        const imageCard = document.createElement('div');
+                        imageCard.className = 'image-card';
+                        imageCard.innerHTML = `
+                            <img src="${image.path}" alt="Обработанное изображение" loading="lazy">
+                            <div class="text-center mt-2">
+                                <small class="text-muted">${image.created_at}</small>
+                            </div>
+                        `;
+                        imagesGrid.insertBefore(imageCard, imagesGrid.firstChild);
+                    });
+                }
+            } else {
+                messagesDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Ошибка: ${data.message}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            messagesDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Произошла ошибка при обработке запроса
+                </div>
+            `;
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            btnText.textContent = 'Загрузить изображения';
+            spinner.classList.add('d-none');
+        });
+    });
+});
+</script>
+{% endblock %} 
