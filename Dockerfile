@@ -71,4 +71,4 @@ RUN groupadd -g 1000 symfony && useradd -u 1000 -g symfony -m symfony
 EXPOSE 80
 
 # Запускаем Apache
-CMD ["apache2-ctl", "-D", "FOREGROUND"] 
+CMD ["apache2-foreground"] 
