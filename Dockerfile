@@ -42,9 +42,17 @@ WORKDIR /var/www/html
 # Копируем файлы composer для кэширования зависимостей
 COPY composer.json composer.lock ./
 
+# Аргументы сборки для чувствительных данных
+ARG APP_SECRET=your_app_secret_here_change_this
+
+# Создаем .env файл
+RUN echo "APP_ENV=prod\n\
+APP_SECRET=${APP_SECRET}\n\
+DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db\n\
+MESSENGER_TRANSPORT_DSN=doctrine://default" > .env
+
 # Устанавливаем переменные окружения
 ENV APP_ENV=prod
-ENV APP_SECRET=your_app_secret_here_change_this
 
 # Устанавливаем зависимости PHP
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-progress --prefer-dist
@@ -61,7 +69,7 @@ RUN mkdir -p var/cache var/log public/processed-images \
 RUN composer dump-autoload --optimize
 
 # Настраиваем Apache DocumentRoot
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
