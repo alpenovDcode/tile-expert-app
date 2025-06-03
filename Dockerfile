@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libicu-dev \
     libzip-dev \
+    apache2-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем PHP расширения
